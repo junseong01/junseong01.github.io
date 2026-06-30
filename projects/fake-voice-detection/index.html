@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>생성 AI의 가짜 음성 검출 및 탐지 — Junseong Park</title>
+  <title>생성 AI의 가짜 음성 검출 및 탐지 - Junseong Park</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
 
     <header class="detail-header">
       <div class="detail-meta">
-        <span>2024.07.01 — 2024.07.24</span>
+        <span>2024.07.01 - 2024.07.24</span>
         <span class="sep">·</span>
         <span>DACON · SW중심대학 디지털 경진대회</span>
         <span class="sep">·</span>
@@ -60,7 +60,7 @@
       </p>
       <p>
         본 프로젝트는 DACON에서 주최한 SW중심대학 디지털 경진대회(2024)의
-        「SW와 생성 AI의 만남 — 생성 AI의 가짜(Fake) 음성 검출 및 탐지」 대회 참가 프로젝트로,
+        「SW와 생성 AI의 만남 - 생성 AI의 가짜(Fake) 음성 검출 및 탐지」 대회 참가 프로젝트로,
         제한된 데이터 환경에서 Noise Overlay, Pseudo Labeling 등 다양한 기법을 적용하여
         전국 7위(후원기업상)를 달성하였다.
       </p>
@@ -70,10 +70,10 @@
     <section class="detail-section">
       <h3>데이터 분석 (Data Analysis)</h3>
       <ul>
-        <li><strong>음성 개수 불일치</strong> — Train Data: 1개의 음성만 존재 / Test·Unlabeled Data: 샘플당 최대 2개의 음성</li>
-        <li><strong>방음 환경 차이</strong> — Train Data: 방음 환경에서 녹음된 음성만 존재 / Test·Unlabeled Data: 방음·비방음 환경 모두 존재</li>
-        <li><strong>음성 길이 불균형</strong> — Train Data: 0~39초의 다양한 길이, Fake/Real 분포 차이 / Test Data: 음성 길이 5초로 고정</li>
-        <li><strong>인사이트</strong> — Train/Test 간 구조적 불일치로 단순 학습 시 AI 예측 성능 저하 예상 → 전처리 필수</li>
+        <li><strong>음성 개수 불일치</strong> - Train Data: 1개의 음성만 존재 / Test·Unlabeled Data: 샘플당 최대 2개의 음성</li>
+        <li><strong>방음 환경 차이</strong> - Train Data: 방음 환경에서 녹음된 음성만 존재 / Test·Unlabeled Data: 방음·비방음 환경 모두 존재</li>
+        <li><strong>음성 길이 불균형</strong> - Train Data: 0~39초의 다양한 길이, Fake/Real 분포 차이 / Test Data: 음성 길이 5초로 고정</li>
+        <li><strong>인사이트</strong> - Train/Test 간 구조적 불일치로 단순 학습 시 AI 예측 성능 저하 예상 → 전처리 필수</li>
       </ul>
     </section>
 
@@ -93,7 +93,7 @@
       <ul>
         <li>pad2D 함수 설계 (5초 미만/초과 음성 길이를 통일하여 입력 안정화)</li>
         <li>CutMix/Mixup 실험 참여 및 성능 비교 분석</li>
-        <li>Pseudo Labeling 기반 Semi-supervised Learning 적용 — Unlabeled data 활용으로 모델 일반화 성능 개선</li>
+        <li>Pseudo Labeling 기반 Semi-supervised Learning 적용 - Unlabeled data 활용으로 모델 일반화 성능 개선</li>
       </ul>
 
       <div class="detail-aside">

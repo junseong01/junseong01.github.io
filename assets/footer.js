@@ -1,4 +1,4 @@
-// Shared site footer — single source of truth.
+// Shared site footer - single source of truth.
 // Usage: place <footer id="site-footer" data-home="../../"></footer> then load this script.
 //   data-home      relative path to the site root (used by the back link)
 //   data-copyright present on the home page to show "© 2026" instead of the back link
