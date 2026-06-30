@@ -10,8 +10,8 @@
   var home = el.getAttribute('data-home') || '';
 
   var left = el.hasAttribute('data-copyright')
-    ? '© 2026 Yuhyun Kim'
-    : '<a href="' + home + '">← Yuhyun Kim</a>';
+    ? '© 2026 Junseong Park'
+    : '<a href="' + home + '">← Junseong Park</a>';
 
   el.innerHTML =
     '<div>' + left + '</div>' +
