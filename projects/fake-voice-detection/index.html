@@ -75,6 +75,25 @@
         <li><strong>음성 길이 불균형</strong> - Train Data: 0~39초의 다양한 길이, Fake/Real 분포 차이 / Test Data: 음성 길이 5초로 고정</li>
         <li><strong>인사이트</strong> - Train/Test 간 구조적 불일치로 단순 학습 시 AI 예측 성능 저하 예상 → 전처리 필수</li>
       </ul>
+
+      <div class="figure-grid" style="margin-top:16px;">
+        <figure>
+          <img src="voice-count-diff.png" alt="샘플 당 음성 개수 차이">
+          <figcaption>샘플 당 음성 개수 차이 - Train은 1개, Test·Unlabeled는 최대 2개</figcaption>
+        </figure>
+        <figure>
+          <img src="soundproof-env-diff.png" alt="방음 환경 여부 스펙트로그램 비교">
+          <figcaption>방음 환경 여부 - Train은 방음 환경만 존재, Test·Unlabeled는 방음·비방음 혼재</figcaption>
+        </figure>
+      </div>
+
+      <figure style="margin: 20px 0 4px;">
+        <img src="length-distribution.png" alt="Train data의 Fake/Real 음성 길이 분포"
+             style="width:100%; border-radius:10px; border:1px solid var(--border); display:block;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          Train data의 Fake(빨강)·Real(파랑) 음성 길이 분포 - 0~39초로 다양하며 Fake는 1~2초에, Real은 3~4초에 편중
+        </figcaption>
+      </figure>
     </section>
 
     <!-- ============= APPROACH ============= -->
@@ -84,22 +103,79 @@
       <h3 style="font-size:15px; margin-top:20px; margin-bottom:8px;">데이터 분석 및 전처리</h3>
       <ul>
         <li>Train data 구조적 문제점 3가지 분석 (음성 개수 불일치, 길이 imbalance, 방음 환경 차이)</li>
-        <li>Audio Transformation 비교 분석 (STFT, MFCC, CQT 등)</li>
-        <li>Unlabeled data에서 배경 소음을 분리하고 Train data에 overlay하여 방음 외 환경 대응</li>
-        <li>음성 개수를 고려한 조합 오디오 데이터 증강으로 Train Dataset 구성</li>
+        <li>Audio Transformation 비교 분석 (Mel-Spectrogram, MFCC, CQT) - Fake/Real 판별 핵심인 Formant가 존재하는 저주파 대역에서 높은 해상도를 보이고, 시간 해상도를 유지한 채 주파수 변화를 분석할 수 있는 CQT를 최종 채택</li>
+        <li>Noise Extractor 설계 - Unlabeled data에서 Voice Active Detector로 음성 구간을 제거해 순수 배경 소음(noise)만 추출</li>
+        <li>추출한 noise를 Train data에 overlay하여 비방음 환경을 재현하고, Train data끼리 overlay하여 2인 음성 데이터를 생성하는 등 음성 개수·환경을 고려한 조합 오디오 증강으로 Train Dataset(약 248,400개) 구성</li>
       </ul>
 
-      <h3 style="font-size:15px; margin-top:20px; margin-bottom:8px;">AI 모델링</h3>
+      <div class="figure-grid" style="margin-top:16px;">
+        <figure>
+          <img src="audio-transform-compare.png" alt="Mel-Spectrogram, MFCC, CQT 비교">
+          <figcaption>Audio Transformation 비교 - Mel-Spectrogram / MFCC / CQT</figcaption>
+        </figure>
+        <figure>
+          <img src="dataset-augmentation-tree.png" alt="훈련 데이터셋 구성 다이어그램">
+          <figcaption>훈련 데이터셋 구성 - Fake/Real 조합 overlay + Unlabeled noise 추출</figcaption>
+        </figure>
+      </div>
+
+      <h3 style="font-size:15px; margin-top:28px; margin-bottom:8px;">AI 모델링</h3>
       <ul>
-        <li>pad2D 함수 설계 (5초 미만/초과 음성 길이를 통일하여 입력 안정화)</li>
-        <li>CutMix/Mixup 실험 참여 및 성능 비교 분석</li>
-        <li>Pseudo Labeling 기반 Semi-supervised Learning 적용 - Unlabeled data 활용으로 모델 일반화 성능 개선</li>
+        <li><strong>AST(Audio Spectrogram Transformer) 채택</strong> - 기존 스펙트로그램 대신 CQT를 입력으로 사용하는 Transformer 기반 모델. 대규모 비지도 데이터로 사전 학습되었으며 self-attention 메커니즘으로 음성 신호의 문맥적 정보를 효과적으로 학습 (Gong et al., 2021)</li>
+        <li><strong>Teacher-Student 기반 Pseudo Labeling</strong> - Train Data로 학습한 Teacher AST가 Unlabeled Data에 대한 예측을 생성하고, 이를 Pseudo-labeled Data로 삼아 원본 Train Data에 합쳐 재학습</li>
+        <li>pad2D 함수 설계 - 5초 미만 음성은 반복(loop)으로, 5초 초과 음성은 Random Select로 길이를 5초로 통일하여 입력 안정화</li>
+        <li>CutMix/MixUp 실험 참여 및 성능 비교 분석 - 음성의 연속적 특성상 CutMix보다 MixUp이 더 효과적임을 확인</li>
+        <li>Pseudo Labeling 기반 Semi-supervised Learning 적용 - Test Data와 유사한 Unlabeled Data를 학습에 참여시켜 모델의 일반화 성능 개선</li>
+        <li><strong>추론 파이프라인</strong> - Trained AST의 예측 결과와, Wav2vec2(STT)·Silero(VAD)로 구성한 Voice Active Detector의 비음성(Non-speech) 판별 결과를 OR 연산으로 결합해 최종 출력을 산출</li>
       </ul>
+
+      <figure style="margin: 20px 0 4px;">
+        <img src="ast-architecture.png" alt="AST(Audio Spectrogram Transformer) 모델 구조"
+             style="width:100%; max-width:560px; border-radius:10px; border:1px solid var(--border); display:block; margin:0 auto; background:#fff;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          AST 모델 구조 - CQT 스펙트로그램을 패치 단위로 분할해 Transformer Encoder에 입력 (Gong, Chung &amp; Glass, 2021)
+        </figcaption>
+      </figure>
+
+      <div class="figure-grid" style="margin-top:16px;">
+        <figure>
+          <img src="pad2d.png" alt="pad2D 데이터 증강 예시">
+          <figcaption>pad2D - 5초 미만/초과 음성 길이를 5초로 통일</figcaption>
+        </figure>
+        <figure>
+          <img src="cutmix-mixup.png" alt="CutMix, MixUp 데이터 증강 예시">
+          <figcaption>CutMix(좌) / MixUp(우) - CQT로 변환된 음성 2개를 결합</figcaption>
+        </figure>
+      </div>
+
+      <figure style="margin: 20px 0 4px;">
+        <img src="pseudo-labeled.png" alt="Pseudo Labeling 기반 Semi-supervised Learning 개념도"
+             style="width:100%; max-width:640px; border-radius:10px; border:1px solid var(--border); display:block; margin:0 auto; background:#fff;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          Pseudo Labeling - Labeled Data로 학습한 모델이 Unlabeled Data에 라벨을 부여해 학습 데이터에 합류
+        </figcaption>
+      </figure>
+
+      <table class="result-table" style="margin-top:20px;">
+        <caption>Augmentation 기법별 Accuracy 개선</caption>
+        <thead>
+          <tr><th>Augmentation</th><th class="num">Accuracy</th><th class="num">개선폭</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Base</td><td class="num">93.04%</td><td class="num">-</td></tr>
+          <tr><td>Train data + Noise Overlay</td><td class="num">94.48%</td><td class="num">+1.44</td></tr>
+          <tr><td>2 Voice Overlay</td><td class="num">94.53%</td><td class="num">+1.49</td></tr>
+          <tr><td>CutMix</td><td class="num">94.29%</td><td class="num">+1.25</td></tr>
+          <tr><td>Pseudo Label</td><td class="num">95.23%</td><td class="num">+2.19</td></tr>
+          <tr><td>pad2D</td><td class="num">95.42%</td><td class="num">+2.38</td></tr>
+          <tr class="total"><td>MixUp</td><td class="num">96.52%</td><td class="num">+3.48</td></tr>
+        </tbody>
+      </table>
 
       <div class="detail-aside">
         <span class="aside-label">Role (팀원)</span>
         데이터 분석 및 전처리: Train data 구조적 문제점 분석, Audio Transformation 비교,
-        배경 소음 분리 및 Noise Overlay, 조합 오디오 증강 &nbsp;|&nbsp;
+        Noise Extractor 설계 및 Noise Overlay, 조합 오디오 증강 &nbsp;|&nbsp;
         AI: pad2D 함수 설계, CutMix/Mixup 실험, Pseudo Labeling 적용
       </div>
     </section>
@@ -112,6 +188,9 @@
         <span class="tag">Python</span>
         <span class="tag">PyTorch</span>
         <span class="tag">Docker</span>
+        <span class="tag">AST</span>
+        <span class="tag">Wav2vec2</span>
+        <span class="tag">Silero VAD</span>
         <span class="tag">STFT / MFCC / CQT</span>
         <span class="tag">Pseudo Labeling</span>
         <span class="tag">Noise Overlay</span>
@@ -132,9 +211,11 @@
       <ul>
         <li><strong>2024 SW중심대학 디지털 경진대회 AI 부문 전국 7위 수상 (카카오 후원기업상)</strong></li>
         <li><strong>2024 소중한 SW·AI 경진대회 AI 부문 1등 수상</strong> (국립한밭대학교, 2024.06)</li>
-        <li>제한된 데이터 환경에서 Noise Overlay, Pseudo Labeling 등 여러 방법론으로 성능 극대화 가능성 확인</li>
+        <li>DACON 리더보드 최종 스코어 Public 0.18745 / Private 0.19001 (Team AiRLab)</li>
+        <li>제한된 데이터 환경에서 Noise Overlay, Pseudo Labeling 등 여러 방법론으로 성능 극대화 가능성 확인 - MixUp이 가장 큰 폭(+3.48%p)의 성능 개선을 보임</li>
         <li>생소한 분야에 대한 두려움을 극복하고 팀원으로서 역할을 수행, 논문 검색 및 핵심 내용 파악 능력 향상</li>
         <li>부족함을 인정하고 팀원들의 장점에서 배우는 자세를 유지, 팀워크가 수상의 원동력이 됨</li>
+        <li>Future Work로 Meta Pseudo Label, Speech Separation(Mossformer) 등을 통한 성능 개선 방향을 제안</li>
       </ul>
     </section>
 
