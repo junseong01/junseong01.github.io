@@ -108,14 +108,30 @@
         <li>추출한 noise를 Train data에 overlay하여 비방음 환경을 재현하고, Train data끼리 overlay하여 2인 음성 데이터를 생성하는 등 음성 개수·환경을 고려한 조합 오디오 증강으로 Train Dataset(약 248,400개) 구성</li>
       </ul>
 
+      <figure style="margin: 16px 0 4px;">
+        <img src="audio-transform-compare.png" alt="Mel-Spectrogram, MFCC, CQT 비교"
+             style="width:100%; border-radius:10px; border:1px solid var(--border); display:block;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          Audio Transformation 비교 - Mel-Spectrogram / MFCC / CQT 중, 저주파 대역 해상도와 시간·주파수 해상도를 모두 확보하는 CQT를 최종 채택
+        </figcaption>
+      </figure>
+
+      <figure style="margin: 20px 0 4px;">
+        <img src="cqt-fake-real.png" alt="CQT로 변환한 Fake 음성과 Real 음성 비교"
+             style="width:100%; border-radius:10px; border:1px solid var(--border); display:block;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          CQT로 변환한 Fake(좌)·Real(우) 음성 - Formant가 분포하는 저주파 대역에서 Fake/Real 간 패턴 차이가 뚜렷하게 드러남
+        </figcaption>
+      </figure>
+
       <div class="figure-grid" style="margin-top:16px;">
         <figure>
-          <img src="audio-transform-compare.png" alt="Mel-Spectrogram, MFCC, CQT 비교">
-          <figcaption>Audio Transformation 비교 - Mel-Spectrogram / MFCC / CQT</figcaption>
+          <img src="noise-extractor.png" alt="Unlabeled noise extractor - noise 제거 전후">
+          <figcaption>Noise Extractor - Unlabeled data에서 음성 구간을 제거해 순수 배경 소음만 추출</figcaption>
         </figure>
         <figure>
           <img src="dataset-augmentation-tree.png" alt="훈련 데이터셋 구성 다이어그램">
-          <figcaption>훈련 데이터셋 구성 - Fake/Real 조합 overlay + Unlabeled noise 추출</figcaption>
+          <figcaption>훈련 데이터셋 구성 - Fake/Real 조합 overlay + 추출한 noise overlay (약 248,400개)</figcaption>
         </figure>
       </div>
 
@@ -134,6 +150,30 @@
              style="width:100%; max-width:560px; border-radius:10px; border:1px solid var(--border); display:block; margin:0 auto; background:#fff;">
         <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
           AST 모델 구조 - CQT 스펙트로그램을 패치 단위로 분할해 Transformer Encoder에 입력 (Gong, Chung &amp; Glass, 2021)
+        </figcaption>
+      </figure>
+
+      <figure style="margin: 24px 0 4px;">
+        <img src="model-train-pipeline.png" alt="Teacher-Student 기반 학습 파이프라인"
+             style="width:100%; max-width:760px; border-radius:10px; border:1px solid var(--border); display:block; margin:0 auto; background:#fff;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          학습 파이프라인 - Train Data로 학습한 Teacher AST가 Unlabeled Data에 Pseudo label을 부여하고, 이를 원본 Train Data에 합쳐 Student AST를 재학습
+        </figcaption>
+      </figure>
+
+      <figure style="margin: 20px 0 4px;">
+        <img src="model-inference-pipeline.png" alt="추론 파이프라인"
+             style="width:100%; max-width:680px; border-radius:10px; border:1px solid var(--border); display:block; margin:0 auto; background:#fff;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          추론 파이프라인 - Trained AST의 예측과 Silero·Wav2vec·Wav2vec2 기반 VAD의 비음성(Non-speech) 판별을 OR 연산으로 결합해 최종 출력 산출
+        </figcaption>
+      </figure>
+
+      <figure style="margin: 20px 0 4px;">
+        <img src="vad-models.png" alt="Voice Active Detector 구성 모델 - Silero, Wav2vec, Wav2vec2"
+             style="width:100%; border-radius:10px; border:1px solid var(--border); display:block; background:#fff;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          Voice Active Detector - Silero(VAD)·Wav2vec(STT)·Wav2vec2(STT)로 음성/비음성 구간을 판별해 AST 예측의 오탐을 보정
         </figcaption>
       </figure>
 
@@ -217,6 +257,22 @@
         <li>부족함을 인정하고 팀원들의 장점에서 배우는 자세를 유지, 팀워크가 수상의 원동력이 됨</li>
         <li>Future Work로 Meta Pseudo Label, Speech Separation(Mossformer) 등을 통한 성능 개선 방향을 제안</li>
       </ul>
+
+      <figure style="margin: 24px 0 4px;">
+        <img src="dacon-leaderboard.png" alt="DACON 최종 리더보드 - AiRLab 전국 7위"
+             style="width:100%; border-radius:10px; border:1px solid var(--border); display:block;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          DACON 최종 리더보드(AWARDS) - Team AiRLab 전국 7위 (Private Score 0.19001)
+        </figcaption>
+      </figure>
+
+      <figure style="margin: 24px 0 4px;">
+        <img src="competition-poster.png" alt="2024 SW중심대학 디지털 경진대회 AI부문 최종 산출물 포스터"
+             style="width:100%; max-width:520px; border-radius:10px; border:1px solid var(--border); display:block; margin:0 auto;">
+        <figcaption style="margin-top:8px; color:var(--muted); font-size:0.86em; text-align:center;">
+          2024 SW중심대학 디지털 경진대회 AI부문 최종 산출물 포스터 (Team AiRLab)
+        </figcaption>
+      </figure>
     </section>
 
   </main>
