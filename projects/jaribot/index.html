@@ -68,6 +68,24 @@
       </p>
     </section>
 
+    <!-- ============= DEMO ============= -->
+    <section class="detail-section">
+      <h3>Demo</h3>
+      <p>
+        좌석 예약부터 CCTV 실시간 감지, 자리봇의 노쇼/사석화 대응까지
+        전체 동작 과정을 담은 시연 영상이다.
+      </p>
+      <div style="position:relative; width:100%; padding-top:56.25%; border-radius:10px; overflow:hidden; border:1px solid var(--border); margin:20px 0;">
+        <iframe
+          src="https://www.youtube.com/embed/O7ir5ADkGJ0"
+          title="자리봇 시연 영상"
+          style="position:absolute; top:0; left:0; width:100%; height:100%;"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      </div>
+    </section>
+
     <!-- ============= SYSTEM ARCHITECTURE ============= -->
     <section class="detail-section">
       <h3>System Architecture</h3>
@@ -105,6 +123,17 @@
         <figure>
           <img src="yolov8-detection.png" alt="YOLOv8n 객체 탐지 결과">
           <figcaption>YOLOv8n 실시간 객체 탐지 - laptop, book, cell phone 등 클래스 분류</figcaption>
+        </figure>
+      </div>
+
+      <div class="figure-grid" style="margin-top:16px;">
+        <figure>
+          <img src="checkerboard-corner-detection.png" alt="체커보드 코너 검출 결과">
+          <figcaption>체커보드 코너 검출 - 광각 렌즈로 촬영한 왜곡 이미지에서 코너 좌표 추출</figcaption>
+        </figure>
+        <figure>
+          <img src="calibration-terminal-output.png" alt="카메라 캘리브레이션 스크립트 실행 결과">
+          <figcaption>캘리브레이션 스크립트 실행 결과 - 카메라 매트릭스·왜곡 계수 산출, 재투영 오차(total error) 0.133</figcaption>
         </figure>
       </div>
 
