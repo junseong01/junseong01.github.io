@@ -6,7 +6,15 @@
   var el = document.getElementById('site-footer');
   if (!el) return;
 
-  var UPDATED = 'June 2026';
+  var UPDATED = 'September 2026';
+  var lastModified = new Date(document.lastModified);
+
+  if (!Number.isNaN(lastModified.getTime())) {
+    UPDATED = lastModified.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  }
   var home = el.getAttribute('data-home') || '';
 
   var left = el.hasAttribute('data-copyright')
